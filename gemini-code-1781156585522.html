@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 날씨</title>
+    <style>
+        /* 기본 스타일 초기화 및 폰트 설정 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Pretendard', sans-serif;
+        }
+
+        /* 날씨에 따른 동적 배경 설정 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+        }
+
+        .sunny-bg { background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%); }
+        .rainy-bg { background: linear-gradient(to bottom, #5c6bc0 0%, #283593 100%); color: white; }
+        .cloudy-bg { background: linear-gradient(to bottom, #8e9eab 0%, #eef2f3 100%); color: #333; }
+
+        /* 메인 컨테이너 디자인 */
+        .weather-container {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        /* 사이트 로고/제목 */
+        .site-title {
+            font-size: 0.9rem;
+            color: #555;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 지역 선택 드롭다운 */
+        .region-selector {
+            margin-bottom: 20px;
+        }
+        
+        select {
+            padding: 10px 15px;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+            width: 100%;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* 텍스트 및 카드 디자인 */
+        header h1 { font-size: 1.2rem; color: #333; margin-bottom: 20px; }
+        .main-weather h2 { font-size: 4rem; color: #222; }
+        .main-weather p { font-size: 1.1rem; color: #555; margin: 5px 0; }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .detail-card {
+            background: white;
+            padding: 15px 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .detail-card h3 { font-size: 0.9rem; color: #777; margin-bottom: 5px; }
+        .detail-card p { font-weight: bold; color: #333; font-size: 1.1rem; }
+
+        .outfit-recommendation {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fdfbfb;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            color: #333;
+        }
+    </style>
+</head>
+<body id="weather-body" class="sunny-bg">
+    <div class="weather-container">
+        <div class="site-title">스마트 날씨</div>
+        
+        <div class="region-selector">
+            <select id="location-select">
+                <option value="seoul">📍 서울, 대한민국</option>
+                <option value="busan">📍 부산, 대한민국</option>
+                <option value="beijing">📍 베이징, 중국</option>
+                <option value="tokyo">📍 도쿄, 일본</option>
+            </select>
+        </div>
+
+        <header>
+            <h1 id="greeting">바람이 차가우니 따뜻한 차 한 잔 어떠세요? ☕</h1>
+        </header>
+
+        <main class="main-weather">
+            <h2 id="current-temp">15°C</h2>
+            <p id="temp-comparison">어제보다 3도 낮아요 📉</p>
+            <p id="weather-desc">맑음 / 산책하기 좋은 날 🚶‍♂️</p>
+        </main>
+
+        <section class="details-grid">
+            <div class="detail-card">
+                <h3>초미세먼지</h3>
+                <p id="dust-level">좋음 🟢</p>
+            </div>
+            <div class="detail-card">
+                <h3>비 소식</h3>
+                <p id="rain-info">없음 ☀️</p>
+            </div>
+            <div class="detail-card">
+                <h3>자외선 지수</h3>
+                <p id="uv-level">보통</p>
+            </div>
+            <div class="detail-card">
+                <h3>빨래 마름 지수</h3>
+                <p id="laundry-index">매우 좋음 👕</p>
+            </div>
+        </section>
+
+        <section class="outfit-recommendation">
+            <h3>오늘의 추천 옷차림 🧥</h3>
+            <p id="outfit-text">일교차가 크니 입고 벗기 편안한 얇은 카디건을 챙기세요!</p>
+        </section>
+    </div>
+
+    <script>
+        // 지역별 가상 날씨 데이터 모음
+        const weatherData = {
+            seoul: {
+                temp: 15, tempDiff: -3, condition: 'sunny', dust: '보통 🟡', rainInfo: '비 소식 없음 ☀️', uv: '높음', laundry: '매우 좋음 👕',
+                greeting: '바람이 차가우니 따뜻한 차 한 잔 어떠세요? ☕', desc: '맑음 / 산책하기 좋은 날 🚶‍♂️', outfit: '일교차가 크니 입고 벗기 편안한 얇은 카디건을 챙기세요!'
+            },
+            busan: {
+                temp: 18, tempDiff: 2, condition: 'sunny', dust: '좋음 🟢', rainInfo: '비 소식 없음 ☀️', uv: '매우 높음', laundry: '좋음 👕',
+                greeting: '햇살이 참 좋은 날이에요. 해운대 걷기 어때요? 🌊', desc: '맑음 / 따뜻한 바람 🍃', outfit: '가벼운 긴팔 티셔츠와 얇은 외투면 충분해요.'
+            },
+            beijing: {
+                temp: 33, tempDiff: 5, condition: 'rainy', dust: '없음 🟢', rainInfo: '오후 3시부터 비 ☔', uv: '낮음', laundry: '실내 건조 권장 💧',
+                greeting: '갑작스러운 비가 예상되니 우산을 꼭 챙기세요! ☔', desc: '흐리고 비 / 매우 더움 🥵', outfit: '날씨가 덥고 습하니 통풍이 잘 되는 시원한 반팔과 우산이 필수예요.'
+            },
+            tokyo: {
+                temp: 22, tempDiff: -1, condition: 'cloudy', dust: '좋음 🟢', rainInfo: '밤 9시 소나기 🌦️', uv: '보통', laundry: '보통 👕',
+                greeting: '구름이 많아 걷기 수월한 날씨네요. ☁️', desc: '흐림 / 외출하기 무난한 날 ☁️', outfit: '밤에 비가 올 수 있으니 작은 접이식 우산을 가방에 넣어두세요.'
+            }
+        };
+
+        // 화면 업데이트 함수
+        function updateWeatherUI(regionKey) {
+            const data = weatherData[regionKey];
+
+            // 1. 데이터 업데이트
+            document.getElementById('current-temp').textContent = `${data.temp}°C`;
+            document.getElementById('temp-comparison').textContent = `어제보다 ${Math.abs(data.tempDiff)}도 ${data.tempDiff > 0 ? '높아요 📈' : '낮아요 📉'}`;
+            document.getElementById('greeting').textContent = data.greeting;
+            document.getElementById('weather-desc').textContent = data.desc;
+            document.getElementById('dust-level').textContent = data.dust;
+            document.getElementById('rain-info').textContent = data.rainInfo;
+            document.getElementById('uv-level').textContent = data.uv;
+            document.getElementById('laundry-index').textContent = data.laundry;
+            document.getElementById('outfit-text').textContent = data.outfit;
+
+            // 2. 날씨 상태에 따른 배경색 변경
+            const body = document.getElementById('weather-body');
+            if (data.condition === 'sunny') {
+                body.className = 'sunny-bg';
+            } else if (data.condition === 'rainy') {
+                body.className = 'rainy-bg';
+            } else if (data.condition === 'cloudy') {
+                body.className = 'cloudy-bg';
+            }
+        }
+
+        // 웹페이지 로드 시 기본 지역(서울) 정보 표시
+        window.onload = () => {
+            updateWeatherUI('seoul');
+        };
+
+        // 사용자가 드롭다운 메뉴에서 다른 지역을 선택했을 때 정보 변경
+        document.getElementById('location-select').addEventListener('change', function(event) {
+            const selectedRegion = event.target.value;
+            updateWeatherUI(selectedRegion);
+        });
+    </script>
+</body>
+</html>
